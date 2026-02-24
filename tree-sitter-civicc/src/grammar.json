@@ -1,0 +1,253 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
+  "name": "civicc",
+  "rules": {
+    "source_file": {
+      "type": "REPEAT",
+      "content": {
+        "type": "SYMBOL",
+        "name": "assign"
+      }
+    },
+    "assign": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "varlet",
+          "content": {
+            "type": "SYMBOL",
+            "name": "id"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "="
+        },
+        {
+          "type": "FIELD",
+          "name": "expr",
+          "content": {
+            "type": "SYMBOL",
+            "name": "expr"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ";"
+        }
+      ]
+    },
+    "expr": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "constant"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "id"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "dyop"
+        }
+      ]
+    },
+    "dyop": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "FIELD",
+          "name": "left",
+          "content": {
+            "type": "SYMBOL",
+            "name": "expr"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "op",
+          "content": {
+            "type": "SYMBOL",
+            "name": "dyoptype"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "right",
+          "content": {
+            "type": "SYMBOL",
+            "name": "expr"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ")"
+        }
+      ]
+    },
+    "dyoptype": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "+"
+          },
+          {
+            "type": "STRING",
+            "value": "-"
+          },
+          {
+            "type": "STRING",
+            "value": "*"
+          },
+          {
+            "type": "STRING",
+            "value": "/"
+          },
+          {
+            "type": "STRING",
+            "value": "<="
+          },
+          {
+            "type": "STRING",
+            "value": "<"
+          },
+          {
+            "type": "STRING",
+            "value": ">="
+          },
+          {
+            "type": "STRING",
+            "value": ">"
+          },
+          {
+            "type": "STRING",
+            "value": "=="
+          },
+          {
+            "type": "STRING",
+            "value": "!="
+          },
+          {
+            "type": "STRING",
+            "value": "&&"
+          },
+          {
+            "type": "STRING",
+            "value": "||"
+          }
+        ]
+      }
+    },
+    "boolval": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "true"
+          },
+          {
+            "type": "STRING",
+            "value": "false"
+          }
+        ]
+      }
+    },
+    "constant": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "floatval"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "intval"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "boolval"
+        }
+      ]
+    },
+    "floatval": {
+      "type": "PATTERN",
+      "value": "[1-9][0-9]*\\.[0-9]+"
+    },
+    "intval": {
+      "type": "PATTERN",
+      "value": "[0-9]+"
+    },
+    "id": {
+      "type": "PATTERN",
+      "value": "[A-Za-z][A-Za-z0-9_]*"
+    },
+    "comment": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "//"
+              },
+              {
+                "type": "PATTERN",
+                "value": ".*"
+              }
+            ]
+          },
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "/*"
+              },
+              {
+                "type": "PATTERN",
+                "value": "[^*]*\\*+([^/*][^*]*\\*+)*"
+              },
+              {
+                "type": "STRING",
+                "value": "/"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "extras": [
+    {
+      "type": "PATTERN",
+      "value": "\\s"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "comment"
+    }
+  ],
+  "conflicts": [],
+  "precedences": [],
+  "externals": [],
+  "inline": [],
+  "supertypes": [
+    "expr"
+  ],
+  "reserved": {}
+}

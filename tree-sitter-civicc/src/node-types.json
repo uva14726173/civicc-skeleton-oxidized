@@ -1,0 +1,162 @@
+[
+  {
+    "type": "expr",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "constant",
+        "named": true
+      },
+      {
+        "type": "dyop",
+        "named": true
+      },
+      {
+        "type": "id",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "assign",
+    "named": true,
+    "fields": {
+      "expr": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      },
+      "varlet": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "id",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "constant",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "boolval",
+          "named": true
+        },
+        {
+          "type": "floatval",
+          "named": true
+        },
+        {
+          "type": "intval",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "dyop",
+    "named": true,
+    "fields": {
+      "left": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      },
+      "op": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "dyoptype",
+            "named": true
+          }
+        ]
+      },
+      "right": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expr",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "source_file",
+    "named": true,
+    "root": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "assign",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
+    "named": false
+  },
+  {
+    "type": ";",
+    "named": false
+  },
+  {
+    "type": "=",
+    "named": false
+  },
+  {
+    "type": "boolval",
+    "named": true
+  },
+  {
+    "type": "comment",
+    "named": true,
+    "extra": true
+  },
+  {
+    "type": "dyoptype",
+    "named": true
+  },
+  {
+    "type": "floatval",
+    "named": true
+  },
+  {
+    "type": "id",
+    "named": true
+  },
+  {
+    "type": "intval",
+    "named": true
+  }
+]
