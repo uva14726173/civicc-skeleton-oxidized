@@ -33,15 +33,19 @@ pub mod parser {
                 let mut stderr = std::io::stderr();
                 let mut buf1: Vec<u8> = Vec::new();
                 let mut buf2: Vec<u8> = vec![b'\x1b', b'[', b'3', b'4', b'm'];
+                let mut force_next: bool = false;
                 while i < bytes.len() {
-                    let marker: u8 = if i == range.start {b'^'} else if range.contains(&i) {b'~'} else {b' '};
+                    let marker: u8 = if i == range.start || force_next {b'^'} else if range.contains(&i) {b'~'} else {b' '};
+                    force_next = false;
                     match bytes[i] {
                         b'\r' => {
                             buf1.push(b'\r');
                             buf2.push(b'\r');
+                            if marker == b'^' {force_next = true;}
                         }
                         b'\n' => {
                             buf1.push(b'\n');
+                            if marker == b'^' {buf2.push(b'^');}
                             buf2.push(b'\n');
                             buf2.push(b'\x1b');
                             buf2.push(b'[');
