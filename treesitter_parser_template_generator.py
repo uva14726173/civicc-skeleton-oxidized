@@ -134,6 +134,22 @@ fn parse_{rs_name}(n: Node, bytes: &[u8]) -> ! {{{fields_parsers(node["fields"])
 }}""")
 
 print("""
+pub fn parse_cpp<P: AsRef<std::path::Path>, P2: AsRef<std::path::Path>>(p: P, system_dir: P2) -> Option<Program> {
+    use std::process::*;
+    let mut sd = std::ffi::OsString::from("-I".to_string());
+    sd.push(system_dir.as_ref().as_os_str());
+    let o = Command::new("cpp")
+        .arg("-E")
+        .arg("-P")
+        .arg(sd)
+        .arg(p.as_ref())
+        .stderr(Stdio::inherit())
+        .output()
+        .expect("Failed to run cpp (c preprocessor)");
+    if !o.status.success() {return None;}
+    parse(&o.stdout)
+}
+
 pub fn parse(bytes: &[u8]) -> Option<!> {
     let mut parser = Parser::new();
     let lang = tree_sitter_civicc::LANGUAGE.into();

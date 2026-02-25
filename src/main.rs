@@ -135,7 +135,7 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    let Some(mut prog) = parser::parse(&std::fs::read(args.path).unwrap()) else {return ExitCode::FAILURE;};
+    let Some(mut prog) = parser::parse_cpp(args.path, std::env::current_exe().unwrap().parent().unwrap().join("include")) else {return ExitCode::FAILURE;};
 
     for (i, (name, f)) in stages.iter().enumerate() {
         if args.verbose {println!("Doing {name}");}
