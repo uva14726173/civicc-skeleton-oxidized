@@ -19,12 +19,6 @@ pub mod ast {
         And,
         Or,
     }
-    /*
-    #[derive(Debug)]
-    pub enum UnOpType {
-        Not, Neg
-    }
-    */
 
     #[derive(Debug)]
     pub struct Program(pub Vec<Assign>);
