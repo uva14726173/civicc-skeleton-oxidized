@@ -166,12 +166,49 @@ fn print_errors(tree: &tree_sitter::Tree, bytes: &[u8]) -> bool {
         let node = cursor.node();
 
         if node.is_error() || node.is_missing() {
-            eprintln!("Syntax error at {}:{}", node.start_position().row + 1, node.start_position().column + 1);
-            eprintln!("Problematic code: {}", str::from_utf8(&bytes[node.byte_range()]).expect("Invalit UTF-8"));
+            eprintln!("\x1b[31mSyntax error:\x1b[0m");
+            let range = node.byte_range();
+            let mut i = bytes[..range.start].iter().rposition(|c| *c == b'\n').map(|i|i+1).unwrap_or(0);
+            use std::io::Write;
+            let mut stderr = std::io::stderr();
+            let mut buf1: Vec<u8> = Vec::new();
+            let mut buf2: Vec<u8> = vec![b'\x1b', b'[', b'3', b'4', b'm'];
+            while i < bytes.len() {
+                let marker: u8 = if i == range.start {b'^'} else if range.contains(&i) {b'~'} else {b' '};
+                match bytes[i] {
+                    b'\r' => {
+                        buf1.push(b'\r');
+                        buf2.push(b'\r');
+                    }
+                    b'\n' => {
+                        buf1.push(b'\n');
+                        buf2.push(b'\n');
+                        buf2.push(b'\x1b');
+                        buf2.push(b'[');
+                        buf2.push(b'0');
+                        buf2.push(b'm');
+                        stderr.write_all(&buf1).unwrap();
+                        stderr.write_all(&buf2).unwrap();
+                        buf1.clear();
+                        buf2.truncate(5);
+                        if i >= range.end {break;}
+                    }
+                    b'\t' => {
+                        for _ in 0..4 {
+                            buf1.push(b' ');
+                            buf2.push(marker);
+                        }
+                    }
+                    c => {
+                        buf1.push(c);
+                        buf2.push(marker);
+                    }
+                }
+                i += 1;
+            }
             has_errors = true;
         }
-
-        if cursor.goto_first_child() {continue;}
+        else if cursor.goto_first_child() {continue;}
         if cursor.goto_next_sibling() {continue;}
 
         loop {
