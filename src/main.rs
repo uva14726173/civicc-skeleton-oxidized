@@ -1,6 +1,5 @@
-use traversal_generator_derive::generate_traversal;
+use coconut::generate_traversal;
 
-pub struct NoTrav<T>(pub T);
 #[generate_traversal]
 pub mod ast {
     #[derive(Debug,PartialEq,Eq)]
@@ -135,7 +134,7 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    let Some(mut prog) = parser::parse_cpp(args.path, std::env::current_exe().unwrap().parent().unwrap().join("include")) else {return ExitCode::FAILURE;};
+    let Some(mut prog) = coconut::parser::c_preprocessor(args.path, std::env::current_exe().unwrap().parent().unwrap().join("include")).and_then(|b| parser::parse(&b)) else {return ExitCode::FAILURE;};
 
     for (i, (name, f)) in stages.iter().enumerate() {
         if args.verbose {println!("Doing {name}");}
