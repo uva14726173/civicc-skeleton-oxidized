@@ -28,6 +28,21 @@ pub fn generate_traversal(_attr: TokenStream, item: TokenStream) -> TokenStream 
         }
     }
 
+    {// Generate dot file for the ast.
+        let mut dot_ast = "digraph G {".to_string();
+        for item in items.iter() {
+            match item {
+                Item::Struct(s) => dot_ast_struct(s, &nodes, &mut dot_ast),
+                Item::Enum(e) => dot_ast_enum(e, &nodes, &mut dot_ast),
+                _ => {}
+            }
+        }
+        dot_ast.push('}');
+        items.push(syn::parse2(quote! {
+            pub const DOT_AST: &str = #dot_ast;
+        }).unwrap());
+    }
+
     {// Generate Node enum, Traversal trait, and basic impl
         let mut variants = Vec::new();
         for ident in &nodes {
@@ -233,6 +248,90 @@ fn impl_enum_trav(
                 if auto_trav {
                     match self {
                         #(#match_arms),*
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// dot ast generation
+
+fn dot_ast_struct(s: &ItemStruct, nodes: &[Ident], out: &mut String) {
+    let name = &s.ident;
+    out.push_str(&format!("{name};"));
+    let name = format!("{name}");
+    dot_ast_fields(&s.fields, nodes, &name, "", "", out);
+}
+fn dot_ast_enum(e: &ItemEnum, nodes: &[Ident], out: &mut String) {
+    let name = &e.ident;
+    out.push_str(&format!("{name} [color=lightblue,style=filled];"));
+    let name = format!("{name}");
+    for variant in &e.variants {
+        let variant_name = &variant.ident;
+        dot_ast_fields(&variant.fields, nodes, &name, &format!("{variant_name}:"), ",color=darkblue", out);
+    }
+}
+fn dot_ast_fields(f: &Fields, nodes: &[Ident], src: &str, prefix: &str, style: &str, out: &mut String) {
+    match &f {
+        Fields::Named(fs) => for field in &fs.named {
+            dot_ast_type(&field.ty, nodes, src, &format!("{prefix}{}", field.ident.as_ref().unwrap()), style, true, false, out);
+        }
+        Fields::Unnamed(fs) => for (i, field) in fs.unnamed.iter().enumerate() {
+            if fs.unnamed.len() == 1 {
+                let prefix = prefix.strip_suffix(":").unwrap_or(prefix);
+                dot_ast_type(&field.ty, nodes, src, prefix, style, true, false, out);
+            } else {
+                dot_ast_type(&field.ty, nodes, src, &format!("{prefix}{i}"), style, true, false, out);
+            }
+        }
+        Fields::Unit => {},
+    }
+}
+fn dot_ast_type(ty: &Type, nodes: &[Ident], src: &str, prefix: &str, style: &str, required: bool, repeat: bool, out: &mut String) {
+    if let Type::Path(TypePath { path, .. }) = ty {
+        if path.segments.len() == 1 {
+            if let Some(seg) = path.segments.last() {
+                if nodes.contains(&seg.ident) {
+                    let (extra_l, extra_style) = match (required, repeat) {
+                        (true, false) => ("", ""),
+                        (false, false) => ("?", ",style=dotted"),
+                        (true, true) => ("+", ",style=bold"),
+                        (false, true) => ("*", ",style=bold"),
+                    };
+                    out.push_str(&format!("{src} -> {} [label={:?}{style}{extra_style}];", seg.ident, format!("{prefix}{extra_l}")));
+                }
+            }
+        }
+        if let Some(seg) = path.segments.last() {
+            if ["Box"].iter().any(|n| seg.ident == n) {
+                if let PathArguments::AngleBracketed(args) = &seg.arguments {
+                    if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
+                        dot_ast_type(inner_ty, nodes, src, prefix, style, required, repeat, out);
+                    }
+                }
+            }
+            if ["Option"].iter().any(|n| seg.ident == n) {
+                if let PathArguments::AngleBracketed(args) = &seg.arguments {
+                    if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
+                        dot_ast_type(inner_ty, nodes, src, prefix, style, false, repeat, out);
+                    }
+                }
+            }
+            if ["Vec", "VecDeque", "LinkedList"].iter().any(|n| seg.ident == n) {
+                if let PathArguments::AngleBracketed(args) = &seg.arguments {
+                    if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
+                        dot_ast_type(inner_ty, nodes, src, prefix, style, false, true, out);
+                    }
+                }
+            }
+            if ["HashMap", "BTreeMap"].iter().any(|n| seg.ident == n) {
+                if let PathArguments::AngleBracketed(args) = &seg.arguments {
+                    if args.args.len() >= 2 {
+                        if let GenericArgument::Type(inner_ty) = &args.args[1] {
+                            dot_ast_type(inner_ty, nodes, src, prefix, style, false, true, out);
+                        }
                     }
                 }
             }

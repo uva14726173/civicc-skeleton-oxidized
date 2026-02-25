@@ -4,5 +4,6 @@ pkgs.mkShell {
     cargo
     tree-sitter
     nodejs
+    graphviz
   ];
 }

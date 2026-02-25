@@ -105,6 +105,10 @@ struct CliArgs {
     #[arg(short, long, action)]
     structure: bool,
 
+    /// Print the dot file of the AST
+    #[arg(long, action)]
+    print_dot_ast: bool,
+
     /// The path to the civic file to read
     path: std::path::PathBuf,
 }
@@ -123,6 +127,11 @@ fn main() -> ExitCode {
         for (i, (name, _)) in stages.iter().enumerate() {
             println!("{i}: {name}");
         }
+        return ExitCode::SUCCESS;
+    }
+
+    if args.print_dot_ast {
+        println!("{}", ast::DOT_AST);
         return ExitCode::SUCCESS;
     }
 
